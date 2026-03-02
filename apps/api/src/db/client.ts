@@ -1,7 +1,7 @@
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres, { type Sql } from "postgres";
 import "dotenv/config";
-import * as schema from "./schema.js";
+import * as schema from "./schema";
 
 let _queryClient: Sql | null = null;
 let _db: PostgresJsDatabase<typeof schema> | null = null;

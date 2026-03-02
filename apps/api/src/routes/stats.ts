@@ -1,14 +1,14 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, and, gte, sql, desc, isNotNull } from "drizzle-orm";
-import { db } from "../db/client.js";
+import { db } from "../db/client";
 import {
   setLogs,
   exercises,
   workoutSessions,
-} from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { NotFound } from "../lib/errors.js";
-import { parseLimit } from "../lib/pagination.js";
+} from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { NotFound } from "../lib/errors";
+import { parseLimit } from "../lib/pagination";
 
 const router = Router();
 router.use(authMiddleware);

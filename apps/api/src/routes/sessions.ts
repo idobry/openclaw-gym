@@ -1,16 +1,16 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, and, gte, lte, sql, desc, isNotNull } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
-import { db } from "../db/client.js";
+import { db } from "../db/client";
 import {
   workoutSessions,
   setLogs,
   exercises,
   workoutTemplates,
-} from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { NotFound, BadRequest } from "../lib/errors.js";
-import { parseLimit } from "../lib/pagination.js";
+} from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { NotFound, BadRequest } from "../lib/errors";
+import { parseLimit } from "../lib/pagination";
 
 const router = Router();
 router.use(authMiddleware);

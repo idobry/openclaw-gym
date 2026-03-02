@@ -1,15 +1,15 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { AppError } from "./lib/errors.js";
+import { AppError } from "./lib/errors";
 
-import templateRoutes from "./routes/templates.js";
-import exerciseRoutes from "./routes/exercises.js";
-import sessionRoutes from "./routes/sessions.js";
-import setRoutes from "./routes/sets.js";
-import statsRoutes from "./routes/stats.js";
-import programRoutes from "./routes/program.js";
-import changeRoutes from "./routes/changes.js";
+import templateRoutes from "./routes/templates";
+import exerciseRoutes from "./routes/exercises";
+import sessionRoutes from "./routes/sessions";
+import setRoutes from "./routes/sets";
+import statsRoutes from "./routes/stats";
+import programRoutes from "./routes/program";
+import changeRoutes from "./routes/changes";
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "3000");

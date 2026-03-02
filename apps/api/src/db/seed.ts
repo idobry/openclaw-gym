@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { db, queryClient } from "./client.js";
-import { exercises } from "./schema.js";
+import { db, queryClient } from "./client";
+import { exercises } from "./schema";
 
 async function seed() {
   const catalogPath = resolve(

@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, and, desc } from "drizzle-orm";
-import { db } from "../db/client.js";
-import { changeLog } from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { parseLimit } from "../lib/pagination.js";
+import { db } from "../db/client";
+import { changeLog } from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { parseLimit } from "../lib/pagination";
 
 const router = Router();
 router.use(authMiddleware);

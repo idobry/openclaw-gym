@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, and, isNotNull, sql, asc } from "drizzle-orm";
-import { db } from "../db/client.js";
+import { db } from "../db/client";
 import {
   workoutTemplates,
   templateExercises,
@@ -8,10 +8,10 @@ import {
   workoutSessions,
   setLogs,
   profiles,
-} from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { logChange } from "../middleware/changeLog.js";
-import { BadRequest } from "../lib/errors.js";
+} from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { logChange } from "../middleware/changeLog";
+import { BadRequest } from "../lib/errors";
 
 const DEFAULT_COLORS = [
   "#FF6B6B",

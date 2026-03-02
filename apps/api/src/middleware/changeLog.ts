@@ -1,6 +1,6 @@
-import { db } from "../db/client.js";
-import { changeLog } from "../db/schema.js";
-import type { AuthPayload } from "./auth.js";
+import { db } from "../db/client";
+import { changeLog } from "../db/schema";
+import type { AuthPayload } from "./auth";
 
 export async function logChange(
   auth: AuthPayload,

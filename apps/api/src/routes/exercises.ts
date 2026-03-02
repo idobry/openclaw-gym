@@ -1,10 +1,10 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, ilike, and, sql } from "drizzle-orm";
-import { db } from "../db/client.js";
-import { exercises } from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { NotFound } from "../lib/errors.js";
-import { parseLimit } from "../lib/pagination.js";
+import { db } from "../db/client";
+import { exercises } from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { NotFound } from "../lib/errors";
+import { parseLimit } from "../lib/pagination";
 
 const router = Router();
 router.use(authMiddleware);

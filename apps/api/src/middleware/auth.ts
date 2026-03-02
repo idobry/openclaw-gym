@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
-import { db } from "../db/client.js";
-import { profiles } from "../db/schema.js";
-import { Unauthorized } from "../lib/errors.js";
+import { db } from "../db/client";
+import { profiles } from "../db/schema";
+import { Unauthorized } from "../lib/errors";
 
 export interface AuthPayload {
   userId: string;

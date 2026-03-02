@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { eq, and } from "drizzle-orm";
-import { db } from "../db/client.js";
-import { setLogs, workoutSessions } from "../db/schema.js";
-import { authMiddleware } from "../middleware/auth.js";
-import { NotFound, BadRequest } from "../lib/errors.js";
+import { db } from "../db/client";
+import { setLogs, workoutSessions } from "../db/schema";
+import { authMiddleware } from "../middleware/auth";
+import { NotFound, BadRequest } from "../lib/errors";
 
 const router = Router();
 router.use(authMiddleware);
