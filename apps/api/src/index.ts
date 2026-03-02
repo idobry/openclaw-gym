@@ -115,8 +115,11 @@ app.use(
   }
 );
 
-app.listen(PORT, () => {
-  console.log(`OpenClaw Gym API running on port ${PORT}`);
-});
+// Only listen when running directly (not on Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`OpenClaw Gym API running on port ${PORT}`);
+  });
+}
 
 export default app;

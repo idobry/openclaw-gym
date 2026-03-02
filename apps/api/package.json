@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "vercel-build": "echo 'Built by Vercel'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

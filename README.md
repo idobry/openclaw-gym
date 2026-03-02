@@ -154,11 +154,28 @@ curl -s http://localhost:3000/changes?actor=agent \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+## Deployment
+
+Both apps deploy to **Vercel**:
+
+- **API**: Deployed as a Vercel serverless function (Express wrapped via `api/index.ts`)
+- **Web**: Standard Next.js deployment
+
+Each app is a separate Vercel project pointing to its subdirectory:
+
+```bash
+# API project: Root Directory = apps/api
+# Web project: Root Directory = apps/web
+```
+
+Set the environment variables from `.env.example` in each Vercel project's settings.
+
 ## Tech Stack
 
 - **API**: Express, Drizzle ORM, PostgreSQL
 - **Auth**: Supabase Auth (JWT)
 - **Web**: Next.js, Tailwind CSS
+- **Deploy**: Vercel (both API + web)
 - **Build**: Turborepo, npm workspaces
 
 ## License
