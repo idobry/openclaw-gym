@@ -18,6 +18,12 @@ export function AgenticApproach() {
       description:
         "Same power as the app itself. Create templates, swap exercises, adjust rep ranges, import entire programs.",
     },
+    {
+      icon: "🔍",
+      title: "Agent Discovery",
+      description:
+        "Standard llms.txt, llms-full.txt, and agent.json endpoints. Any AI agent can auto-discover and use the API.",
+    },
   ];
 
   return (
@@ -28,16 +34,24 @@ export function AgenticApproach() {
             Built for Agents, <span className="text-accent">Not Just Humans</span>
           </h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
-            Inspired by the "markdown for agents" philosophy. Every endpoint
-            returns clean, structured JSON. Every mutation accepts a reason
-            field for audit trails. Discovery via{" "}
+            Inspired by the &quot;markdown for agents&quot; philosophy. Every
+            endpoint returns clean, structured JSON. Every mutation accepts a
+            reason field for audit trails. Auto-discovery via{" "}
             <code className="text-accent bg-accent/10 px-1.5 py-0.5 rounded text-sm">
-              /.well-known/agent.json
+              llms.txt
+            </code>
+            ,{" "}
+            <code className="text-accent bg-accent/10 px-1.5 py-0.5 rounded text-sm">
+              llms-full.txt
+            </code>
+            , and{" "}
+            <code className="text-accent bg-accent/10 px-1.5 py-0.5 rounded text-sm">
+              agent.json
             </code>
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => (
             <div
               key={card.title}

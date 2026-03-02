@@ -27,7 +27,7 @@ curl -s https://api.openclaw.gym/program/json \\
           <div>
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-3 py-1.5 rounded-full text-sm font-medium mb-6">
               <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-              Agent-Native API
+              Agent-Native API with llms.txt
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
               Your Gym Program,{" "}

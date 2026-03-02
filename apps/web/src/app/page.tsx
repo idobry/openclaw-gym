@@ -1,5 +1,6 @@
 import { Hero } from "@/components/Hero";
 import { AgenticApproach } from "@/components/AgenticApproach";
+import { AgentDiscovery } from "@/components/AgentDiscovery";
 import { HowItWorks } from "@/components/HowItWorks";
 import { ApiReference } from "@/components/ApiReference";
 import { AuthGuide } from "@/components/AuthGuide";
@@ -18,6 +19,7 @@ export default function Home() {
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-text-secondary hover:text-text-primary transition-colors text-sm">Features</a>
+            <a href="#discovery" className="text-text-secondary hover:text-text-primary transition-colors text-sm">Discovery</a>
             <a href="#docs" className="text-text-secondary hover:text-text-primary transition-colors text-sm">Docs</a>
             <a href="#auth" className="text-text-secondary hover:text-text-primary transition-colors text-sm">Auth</a>
             <a
@@ -40,6 +42,7 @@ export default function Home() {
 
       <Hero />
       <AgenticApproach />
+      <AgentDiscovery />
       <HowItWorks />
       <ApiReference />
       <AuthGuide />

@@ -27,6 +27,14 @@ export function Footer() {
               API Docs
             </a>
             <a
+              href="https://openclaw-gym-api.vercel.app/llms.txt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+            >
+              llms.txt
+            </a>
+            <a
               href="https://supabase.com"
               target="_blank"
               rel="noopener noreferrer"
