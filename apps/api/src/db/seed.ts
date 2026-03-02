@@ -5,7 +5,7 @@ import { exercises } from "./schema";
 
 async function seed() {
   const catalogPath = resolve(
-    import.meta.dirname,
+    __dirname,
     "../../../../exercise-catalog.json"
   );
 
