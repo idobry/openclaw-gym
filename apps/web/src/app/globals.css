@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #0D0D12;
+  color: #F5F5FA;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0D12;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A2A3C;
+  border-radius: 3px;
+}
+
+/* Code block styling */
+.code-block {
+  background: #0D0D12;
+  border: 1px solid #2A2A3C;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+
+/* Method badges */
+.badge-get { background-color: rgba(52, 211, 153, 0.15); color: #34D399; }
+.badge-post { background-color: rgba(108, 92, 231, 0.15); color: #6C5CE7; }
+.badge-put { background-color: rgba(251, 146, 60, 0.15); color: #FB923C; }
+.badge-delete { background-color: rgba(239, 68, 68, 0.15); color: #EF4444; }
