@@ -1,10 +1,10 @@
 {
   "name": "openclaw-gym",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": ["phone", "vercel"],
   "scripts": {
-    "dev:api": "npm run dev -w apps/api",
-    "dev:web": "npm run dev -w apps/web",
+    "dev:api": "npm run dev:api -w vercel",
+    "dev:web": "npm run dev -w vercel",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test:smoke": "vitest run tests/smoke.test.ts"

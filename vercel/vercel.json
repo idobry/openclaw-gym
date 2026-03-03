@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node",
+      "config": { "includeFiles": "server/**" }
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    { "src": "/health", "dest": "/api/index.ts" },
+    { "src": "/llms\\.txt", "dest": "/api/index.ts" },
+    { "src": "/llms-full\\.txt", "dest": "/api/index.ts" },
+    { "src": "^/\\.well-known/(.*)", "dest": "/api/index.ts" },
+    { "src": "^/(templates|exercises|sessions|sets|stats|program|changes)(/.*)?$", "dest": "/api/index.ts" },
+    { "handle": "filesystem" }
+  ]
+}

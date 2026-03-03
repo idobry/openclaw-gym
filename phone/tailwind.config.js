@@ -1,0 +1,46 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      colors: {
+        background: "#0D0D12",
+        surface: "#1A1A24",
+        raised: "#242430",
+        overlay: "#2A2A38",
+        accent: "#6C5CE7",
+        "accent-light": "#8B7CF0",
+        "accent-muted": "rgba(108, 92, 231, 0.15)",
+        success: "#34D399",
+        "success-muted": "rgba(52, 211, 153, 0.15)",
+        warning: "#FBBF24",
+        "warning-muted": "rgba(251, 191, 36, 0.15)",
+        error: "#F87171",
+        "text-primary": "#F5F5FA",
+        "text-secondary": "#7B7B94",
+        "text-tertiary": "#4A4A5E",
+        "upper-a": "#FF6B6B",
+        "lower-a": "#4ECDC4",
+        "upper-b": "#FFE66D",
+        "lower-b": "#A78BFA",
+        border: "#1F1F2E",
+      },
+      fontSize: {
+        "large-title": ["34px", { lineHeight: "41px", fontWeight: "700" }],
+        "title-1": ["28px", { lineHeight: "34px", fontWeight: "700" }],
+        "title-2": ["22px", { lineHeight: "28px", fontWeight: "700" }],
+        "title-3": ["20px", { lineHeight: "25px", fontWeight: "600" }],
+        "body-lg": ["17px", { lineHeight: "22px" }],
+        "body": ["15px", { lineHeight: "20px" }],
+        "footnote": ["13px", { lineHeight: "18px" }],
+        "caption-1": ["12px", { lineHeight: "16px" }],
+        "caption-2": ["11px", { lineHeight: "13px" }],
+      },
+    },
+  },
+  plugins: [],
+};
