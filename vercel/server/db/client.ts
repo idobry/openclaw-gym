@@ -10,6 +10,7 @@ function getQueryClient() {
   if (!_queryClient) {
     _queryClient = postgres(process.env.DATABASE_URL!, {
       prepare: false, // Required for Supabase connection pooler (pgBouncer)
+      ssl: "require",
     });
   }
   return _queryClient;
