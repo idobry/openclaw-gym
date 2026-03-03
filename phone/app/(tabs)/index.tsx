@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   RefreshControl,
   StyleSheet,
+  AppState,
+  AppStateStatus,
 } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +17,7 @@ import { format } from "date-fns";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { StreakBadge } from "../../src/components/StreakBadge";
+import { AgentChangeBanner } from "../../src/components/AgentChangeBanner";
 import { AnimatedPressable } from "../../src/components/AnimatedPressable";
 import { useStreak } from "../../src/hooks/useStreak";
 import { getRecentSessions } from "../../src/db/queries/workouts";
@@ -40,6 +43,7 @@ export default function HomeScreen() {
   const [hasProgramData, setHasProgramData] = useState(true);
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAgentBanner, setShowAgentBanner] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -66,12 +70,31 @@ export default function HomeScreen() {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
+  // Listen for app foreground to check for agent changes
+  useEffect(() => {
+    const handleAppState = async (nextState: AppStateStatus) => {
+      if (nextState === "active" && isAuthenticated) {
+        try {
+          const hadChanges = await pullFromServer(db);
+          if (hadChanges) {
+            setShowAgentBanner(true);
+            await loadData();
+          }
+        } catch {}
+      }
+    };
+
+    const sub = AppState.addEventListener("change", handleAppState);
+    return () => sub.remove();
+  }, [isAuthenticated, db, loadData]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     if (isAuthenticated) {
       try {
         const hadChanges = await pullFromServer(db);
         if (hadChanges) await loadData();
+        setShowAgentBanner(false);
       } catch {}
     }
     await loadData();
@@ -108,6 +131,12 @@ export default function HomeScreen() {
             <Ionicons name="settings-outline" size={22} color="#7B7B94" />
           </AnimatedPressable>
         </Animated.View>
+
+        {/* Agent change banner */}
+        <AgentChangeBanner
+          visible={showAgentBanner}
+          onDismiss={() => setShowAgentBanner(false)}
+        />
 
         {/* No program loaded */}
         {!hasProgramData && (

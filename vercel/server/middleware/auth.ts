@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { db } from "../db/client";
-import { profiles } from "../db/schema";
+import { profiles, apiKeys } from "../db/schema";
 import { Unauthorized } from "../lib/errors";
+import { createHash } from "crypto";
 
 export interface AuthPayload {
   userId: string;
@@ -43,6 +45,34 @@ export async function authMiddleware(
     }
 
     const token = authHeader.slice(7);
+
+    // API key authentication
+    if (token.startsWith("gym_")) {
+      const keyHash = createHash("sha256").update(token).digest("hex");
+
+      const [key] = await db
+        .select({ id: apiKeys.id, userId: apiKeys.userId })
+        .from(apiKeys)
+        .where(
+          and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt))
+        )
+        .limit(1);
+
+      if (!key) {
+        throw Unauthorized("Invalid API key");
+      }
+
+      // Update lastUsedAt
+      await db
+        .update(apiKeys)
+        .set({ lastUsedAt: sql`NOW()` })
+        .where(eq(apiKeys.id, key.id));
+
+      req.auth = { userId: key.userId, actor: "agent" };
+      return next();
+    }
+
+    // JWT authentication
     const jwks = await getJWKS();
     const { jwtVerify } = await import("jose");
     const { payload } = await jwtVerify(token, jwks);

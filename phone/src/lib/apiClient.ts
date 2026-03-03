@@ -394,3 +394,30 @@ export const changes = {
     return request<ChangeLogEntry[]>("GET", `/changes${query ? `?${query}` : ""}`);
   },
 };
+
+// -- API Keys --
+
+export interface ApiKeyInfo {
+  id: number;
+  name: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface ApiKeyCreated extends ApiKeyInfo {
+  key: string;
+}
+
+export const auth = {
+  createApiKey(name: string) {
+    return request<ApiKeyCreated>("POST", "/auth/api-key", { name });
+  },
+
+  listApiKeys() {
+    return request<ApiKeyInfo[]>("GET", "/auth/api-keys");
+  },
+
+  revokeApiKey(id: number) {
+    return request<{ revoked: true }>("DELETE", `/auth/api-key/${id}`);
+  },
+};

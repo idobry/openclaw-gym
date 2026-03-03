@@ -14,6 +14,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { Ionicons } from "@expo/vector-icons";
 import { AnimatedPressable } from "../../src/components/AnimatedPressable";
 import { useAuthStore } from "../../src/stores/authStore";
+import { useOnboardingStore } from "../../src/stores/onboardingStore";
 import { pushFullSnapshot } from "../../src/lib/sync";
 
 export default function RegisterScreen() {
@@ -43,7 +44,13 @@ export default function RegisterScreen() {
       await signUp(email.trim(), password);
       // Upload local data to server on first registration
       pushFullSnapshot(db).catch(console.warn);
-      router.back();
+      // If in onboarding flow, go to agent setup
+      const step = useOnboardingStore.getState().step;
+      if (step === "signup") {
+        router.replace("/onboarding/agent-setup");
+      } else {
+        router.back();
+      }
     } catch (e: any) {
       setError(e.message || "Registration failed");
     } finally {

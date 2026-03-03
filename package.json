@@ -1,7 +1,7 @@
 {
   "name": "openclaw-gym",
   "private": true,
-  "workspaces": ["phone", "vercel"],
+  "workspaces": ["vercel"],
   "scripts": {
     "dev:api": "npm run dev:api -w vercel",
     "dev:web": "npm run dev -w vercel",

@@ -16,7 +16,7 @@
     { "src": "/llms\\.txt", "dest": "/api/index.ts" },
     { "src": "/llms-full\\.txt", "dest": "/api/index.ts" },
     { "src": "^/\\.well-known/(.*)", "dest": "/api/index.ts" },
-    { "src": "^/(templates|exercises|sessions|sets|stats|program|changes)(/.*)?$", "dest": "/api/index.ts" },
+    { "src": "^/(templates|exercises|sessions|sets|stats|program|changes|auth)(/.*)?$", "dest": "/api/index.ts" },
     { "handle": "filesystem" }
   ]
 }

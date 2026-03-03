@@ -17,6 +17,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { AnimatedPressable } from "../../src/components/AnimatedPressable";
+import { auth as authApi, type ApiKeyInfo } from "../../src/lib/apiClient";
 import {
   validateProgram,
   importProgram,
@@ -42,6 +43,8 @@ export default function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [apiKeys, setApiKeys] = useState<ApiKeyInfo[]>([]);
+  const [loadingKeys, setLoadingKeys] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -55,6 +58,10 @@ export default function SettingsScreen() {
           if (json) setJsonText(json);
         }
         loadLastSynced();
+        if (useAuthStore.getState().isAuthenticated) {
+          setLoadingKeys(true);
+          authApi.listApiKeys().then(setApiKeys).catch(console.warn).finally(() => setLoadingKeys(false));
+        }
       })();
     }, [db, loadLastSynced])
   );
@@ -92,6 +99,32 @@ export default function SettingsScreen() {
       }
     }
     setImporting(false);
+  };
+
+  const handleGenerateKey = async () => {
+    router.push("/onboarding/agent-setup");
+  };
+
+  const handleRevokeKey = (keyId: number, keyName: string) => {
+    Alert.alert(
+      "Revoke API Key",
+      `Are you sure you want to revoke "${keyName}"? Any agent using this key will lose access.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Revoke",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await authApi.revokeApiKey(keyId);
+              setApiKeys((prev) => prev.filter((k) => k.id !== keyId));
+            } catch (e: any) {
+              Alert.alert("Error", e.message || "Failed to revoke key");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleExportHistory = async () => {
@@ -383,6 +416,57 @@ export default function SettingsScreen() {
               <Ionicons name="share-outline" size={18} color="#7B7B94" />
             </AnimatedPressable>
           </Animated.View>
+
+          {/* Agent Access - only shown when authenticated */}
+          {isAuthenticated && (
+            <Animated.View entering={FadeInDown.duration(400).delay(120)}>
+              <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
+                Agent Access
+              </Text>
+
+              {apiKeys.length > 0 ? (
+                apiKeys.map((key) => (
+                  <View key={key.id} style={[styles.accountCardLoggedIn, { marginBottom: 8 }]}>
+                    <View style={styles.accountRow}>
+                      <View style={styles.accountIconWrap}>
+                        <Ionicons name="key" size={18} color="#6C5CE7" />
+                      </View>
+                      <View style={styles.accountTextBlock}>
+                        <Text style={styles.accountTitle}>{key.name}</Text>
+                        <Text style={styles.accountSub}>
+                          Created {new Date(key.createdAt).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <AnimatedPressable
+                      onPress={() => handleRevokeKey(key.id, key.name)}
+                      style={styles.actionBtnDanger}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#F87171" />
+                      <Text style={styles.actionBtnTextDanger}>Revoke</Text>
+                    </AnimatedPressable>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.accountCard}>
+                  <View style={styles.accountIconWrap}>
+                    <Ionicons name="key-outline" size={18} color="#7B7B94" />
+                  </View>
+                  <Text style={[styles.accountSub, { flex: 1 }]}>
+                    No API keys yet
+                  </Text>
+                </View>
+              )}
+
+              <AnimatedPressable
+                onPress={handleGenerateKey}
+                style={[styles.syncBtn, { marginTop: 8, paddingVertical: 14 }]}
+              >
+                <Ionicons name="add-circle-outline" size={18} color="#6C5CE7" />
+                <Text style={styles.syncBtnText}>Generate New Key</Text>
+              </AnimatedPressable>
+            </Animated.View>
+          )}
 
           {/* JSON Preview */}
           <Animated.View entering={FadeInDown.duration(400).delay(140)}>

@@ -12,6 +12,7 @@ import setRoutes from "./routes/sets";
 import statsRoutes from "./routes/stats";
 import programRoutes from "./routes/program";
 import changeRoutes from "./routes/changes";
+import authRoutes from "./routes/auth";
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "3000");
@@ -200,6 +201,7 @@ app.use("/sets", setRoutes);
 app.use("/stats", statsRoutes);
 app.use("/program", programRoutes);
 app.use("/changes", changeRoutes);
+app.use("/auth", authRoutes);
 
 // Error handler
 app.use(

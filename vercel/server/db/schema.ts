@@ -134,3 +134,21 @@ export const changeLog = pgTable(
   },
   (table) => [index("idx_change_log_user").on(table.userId, table.createdAt)]
 );
+
+// -- API Keys --
+
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    keyHash: text("key_hash").notNull(),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => [index("idx_api_keys_user").on(table.userId)]
+);
