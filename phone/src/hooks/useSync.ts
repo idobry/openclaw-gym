@@ -20,12 +20,18 @@ export function useSync() {
     if (!isAuthenticated || isSyncing) return false;
     setIsSyncing(true);
     try {
-      const hadChanges = await syncAll(db);
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Sync timeout")), 30_000),
+      );
+      const hadChanges = await Promise.race([syncAll(db), timeout]);
       const row = await db.getFirstAsync<{ value: string }>(
         "SELECT value FROM user_settings WHERE key = 'lastSyncedAt'"
       );
       setLastSyncedAt(row?.value ?? null);
       return hadChanges;
+    } catch (e) {
+      console.warn("[sync] syncNow error:", e);
+      return false;
     } finally {
       setIsSyncing(false);
     }

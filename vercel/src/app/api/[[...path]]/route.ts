@@ -5,10 +5,11 @@ import app from "../../../../server/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 25;
 
-async function expressToResponse(
-  req: NextRequest
-): Promise<Response> {
+const ADAPTER_TIMEOUT_MS = 20_000;
+
+async function expressToResponse(req: NextRequest): Promise<Response> {
   const url = new URL(req.url);
   // Strip /api prefix so Express routes match (Express expects /health not /api/health)
   const path = url.pathname.replace(/^\/api/, "") || "/";
@@ -29,21 +30,38 @@ async function expressToResponse(
   }
   nodeReq.push(null);
 
-  return new Promise<Response>((resolve, reject) => {
+  return new Promise<Response>((resolve) => {
+    let resolved = false;
+
+    function sendResponse(status: number, headers: Headers, body: Buffer) {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
+      socket.destroy();
+      resolve(new Response(body, { status, headers }));
+    }
+
+    // Safety timeout: always respond even if Express hangs
+    const timer = setTimeout(() => {
+      console.error(`[adapter] Express did not respond within ${ADAPTER_TIMEOUT_MS}ms for ${req.method} ${path}`);
+      sendResponse(
+        504,
+        new Headers({ "content-type": "application/json" }),
+        Buffer.from(JSON.stringify({ error: { code: "GATEWAY_TIMEOUT", message: "Request timed out" } })),
+      );
+    }, ADAPTER_TIMEOUT_MS);
+
     const nodeRes = new ServerResponse(nodeReq);
     const chunks: Buffer[] = [];
 
-    // Capture written data
-    const origWrite = nodeRes.write;
-    nodeRes.write = function (chunk: any, ...args: any[]) {
+    nodeRes.write = function (chunk: any) {
       if (chunk) {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
       }
       return true;
     } as any;
 
-    const origEnd = nodeRes.end;
-    nodeRes.end = function (chunk?: any, ...args: any[]) {
+    nodeRes.end = function (chunk?: any) {
       if (chunk && chunk.length > 0) {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
       }
@@ -59,20 +77,21 @@ async function expressToResponse(
         }
       }
 
-      resolve(
-        new Response(Buffer.concat(chunks), {
-          status: nodeRes.statusCode,
-          headers,
-        })
-      );
-
-      // Clean up the socket
-      socket.destroy();
+      sendResponse(nodeRes.statusCode, headers, Buffer.concat(chunks));
       return nodeRes;
     } as any;
 
     // Let Express handle it
-    app(nodeReq as any, nodeRes as any);
+    try {
+      app(nodeReq as any, nodeRes as any);
+    } catch (err) {
+      console.error("[adapter] Express threw synchronously:", err);
+      sendResponse(
+        500,
+        new Headers({ "content-type": "application/json" }),
+        Buffer.from(JSON.stringify({ error: { code: "INTERNAL_ERROR", message: "Internal server error" } })),
+      );
+    }
   });
 }
 

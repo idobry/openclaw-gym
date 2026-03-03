@@ -34,13 +34,30 @@ export async function pushFullSnapshot(db: SQLiteDatabase): Promise<void> {
 
   // Push program (templates + exercises)
   if (data.workouts && Object.keys(data.workouts).length > 0) {
+    // Build exercise lookup from the exported catalog so we can include
+    // name/muscle_group/equipment in the import payload
+    const exerciseLookup = new Map<string, Record<string, any>>();
+    if (Array.isArray(data.exercises)) {
+      for (const e of data.exercises) {
+        exerciseLookup.set(e.id, e);
+      }
+    }
+
     await api.program.import({
       program_name: data.program_name,
       workouts: Object.values(data.workouts).map((w: any) => ({
         name: w.name,
         color: w.color,
         description: w.focus,
-        exercises: w.exercises,
+        exercises: (w.exercises || []).map((e: any) => {
+          const catalog = exerciseLookup.get(e.id);
+          return {
+            ...e,
+            name: catalog?.name || e.id,
+            muscle_group: catalog?.muscle_group,
+            equipment: catalog?.equipment,
+          };
+        }),
       })),
     });
   }
@@ -180,24 +197,46 @@ export async function pullFromServer(db: SQLiteDatabase): Promise<boolean> {
  * Full bidirectional sync.
  */
 export async function syncAll(db: SQLiteDatabase): Promise<boolean> {
+  const lastSynced = await getSetting(db, "lastSyncedAt");
+
+  // Check if server has data; if not and we have local data, do a full push
+  const needsFullPush = await (async () => {
+    if (!lastSynced) return true;
+    try {
+      const serverTemplates = await api.templates.list();
+      if (serverTemplates.length === 0) {
+        const localCount = await db.getFirstAsync<{ cnt: number }>(
+          "SELECT COUNT(*) as cnt FROM workout_templates",
+        );
+        return (localCount?.cnt ?? 0) > 0;
+      }
+    } catch {
+      // If we can't reach server, still try full push
+      return true;
+    }
+    return false;
+  })();
+
+  if (needsFullPush) {
+    await pushFullSnapshot(db);
+    return false;
+  }
+
   const hadChanges = await pullFromServer(db);
 
   // Push local sessions newer than lastSyncedAt
-  const lastSynced = await getSetting(db, "lastSyncedAt");
-  if (lastSynced) {
-    const newSessions = await db.getAllAsync<{ id: string }>(
-      `SELECT id FROM workout_sessions
-       WHERE completed_at IS NOT NULL AND completed_at > ?
-       ORDER BY completed_at ASC`,
-      lastSynced,
-    );
+  const newSessions = await db.getAllAsync<{ id: string }>(
+    `SELECT id FROM workout_sessions
+     WHERE completed_at IS NOT NULL AND completed_at > ?
+     ORDER BY completed_at ASC`,
+    lastSynced,
+  );
 
-    for (const session of newSessions) {
-      try {
-        await pushSession(db, session.id);
-      } catch (e) {
-        console.warn("Failed to push session:", session.id, e);
-      }
+  for (const session of newSessions) {
+    try {
+      await pushSession(db, session.id);
+    } catch (e) {
+      console.warn("Failed to push session:", session.id, e);
     }
   }
 
