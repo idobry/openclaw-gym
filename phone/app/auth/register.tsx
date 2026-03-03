@@ -43,7 +43,7 @@ export default function RegisterScreen() {
     try {
       await signUp(email.trim(), password);
       // Upload local data to server on first registration
-      pushFullSnapshot(db).catch(console.warn);
+      await pushFullSnapshot(db).catch(console.warn);
       // If in onboarding flow, go to agent setup
       const step = useOnboardingStore.getState().step;
       if (step === "signup") {

@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 import * as api from "./apiClient";
 import { exportFullData } from "../db/queries/history";
-import { importProgram, validateProgram } from "../db/queries/import";
+import { importProgram, importUnifiedData, validateProgram } from "../db/queries/import";
 
 async function getSetting(
   db: SQLiteDatabase,
@@ -194,32 +194,60 @@ export async function pullFromServer(db: SQLiteDatabase): Promise<boolean> {
 }
 
 /**
+ * Pull full program + history from server into an empty local DB.
+ * Returns true if data was pulled.
+ */
+export async function pullFullSnapshot(db: SQLiteDatabase): Promise<boolean> {
+  try {
+    const serverProgram = await api.program.export();
+    if (!serverProgram) return false;
+
+    const result = validateProgram(serverProgram);
+    if (!result.valid || !result.program) return false;
+
+    await importProgram(db, result.program, JSON.stringify(serverProgram, null, 2));
+    await importUnifiedData(db, serverProgram as unknown as Record<string, unknown>);
+
+    await setSetting(db, "lastSyncedAt", new Date().toISOString());
+    return true;
+  } catch (e) {
+    console.warn("Pull full snapshot failed:", e);
+    return false;
+  }
+}
+
+/**
  * Full bidirectional sync.
  */
 export async function syncAll(db: SQLiteDatabase): Promise<boolean> {
   const lastSynced = await getSetting(db, "lastSyncedAt");
 
-  // Check if server has data; if not and we have local data, do a full push
-  const needsFullPush = await (async () => {
-    if (!lastSynced) return true;
-    try {
-      const serverTemplates = await api.templates.list();
-      if (serverTemplates.length === 0) {
-        const localCount = await db.getFirstAsync<{ cnt: number }>(
-          "SELECT COUNT(*) as cnt FROM workout_templates",
-        );
-        return (localCount?.cnt ?? 0) > 0;
-      }
-    } catch {
-      // If we can't reach server, still try full push
-      return true;
-    }
-    return false;
-  })();
+  const localCount = await db.getFirstAsync<{ cnt: number }>(
+    "SELECT COUNT(*) as cnt FROM workout_templates",
+  );
+  const hasLocalData = (localCount?.cnt ?? 0) > 0;
 
-  if (needsFullPush) {
-    await pushFullSnapshot(db);
-    return false;
+  if (!lastSynced) {
+    if (hasLocalData) {
+      // Local has data, server doesn't know about it yet -- push
+      await pushFullSnapshot(db);
+      return false;
+    } else {
+      // Fresh device with no data -- pull from server
+      const pulled = await pullFullSnapshot(db);
+      return pulled;
+    }
+  }
+
+  // Server may have lost data (e.g. reset) -- re-push if needed
+  try {
+    const serverTemplates = await api.templates.list();
+    if (serverTemplates.length === 0 && hasLocalData) {
+      await pushFullSnapshot(db);
+      return false;
+    }
+  } catch {
+    // Can't reach server, continue with normal sync
   }
 
   const hadChanges = await pullFromServer(db);

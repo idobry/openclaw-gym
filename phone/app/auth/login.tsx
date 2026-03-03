@@ -32,8 +32,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(email.trim(), password);
-      // Trigger sync in background after login
-      syncAll(db).catch(console.warn);
+      // Wait for sync so data is ready when user lands on home screen
+      await syncAll(db).catch(console.warn);
       router.back();
     } catch (e: any) {
       setError(e.message || "Sign in failed");

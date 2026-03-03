@@ -145,7 +145,7 @@ export default function HomeScreen() {
               <Ionicons name="document-text-outline" size={48} color="#4A4A5E" />
               <Text style={styles.emptyTitle}>No program loaded</Text>
               <Text style={styles.emptySubtitle}>
-                Paste your workout JSON to get started
+                Import a program or sign in to sync your data
               </Text>
               <AnimatedPressable
                 onPress={() => router.push("/settings")}
@@ -154,6 +154,15 @@ export default function HomeScreen() {
                 <Ionicons name="add-circle" size={20} color="#0D0D12" />
                 <Text style={styles.importBtnText}>Import Program</Text>
               </AnimatedPressable>
+              {!isAuthenticated && (
+                <AnimatedPressable
+                  onPress={() => router.push("/auth/login")}
+                  style={styles.signInBtn}
+                >
+                  <Ionicons name="person-outline" size={20} color="#6C5CE7" />
+                  <Text style={styles.signInBtnText}>Sign In</Text>
+                </AnimatedPressable>
+              )}
             </View>
           </Animated.View>
         )}
@@ -356,6 +365,20 @@ const styles = StyleSheet.create({
   },
   importBtnText: {
     color: "#0D0D12",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  signInBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(108, 92, 231, 0.12)",
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  signInBtnText: {
+    color: "#6C5CE7",
     fontSize: 15,
     fontWeight: "700",
   },
