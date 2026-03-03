@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { profiles } from "../db/schema";
@@ -18,7 +18,11 @@ declare global {
   }
 }
 
-const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET!;
+const JWKS = createRemoteJWKSet(
+  new URL(
+    "https://kjymatxamlsdkjmgwkqi.supabase.co/auth/v1/.well-known/jwks.json"
+  )
+);
 
 export async function authMiddleware(
   req: Request,
@@ -32,9 +36,7 @@ export async function authMiddleware(
     }
 
     const token = authHeader.slice(7);
-    const payload = jwt.verify(token, SUPABASE_JWT_SECRET, {
-      algorithms: ["HS256"],
-    }) as { sub: string; role?: string };
+    const { payload } = await jwtVerify(token, JWKS);
 
     if (!payload.sub) {
       throw Unauthorized("Invalid token: missing subject");
@@ -57,8 +59,11 @@ export async function authMiddleware(
       (req.headers["x-actor"] as string) === "agent" ? "agent" : "user";
     req.auth = { userId, actor };
     return next();
-  } catch (err) {
-    if (err instanceof jwt.JsonWebTokenError) {
+  } catch (err: any) {
+    if (err.code === "ERR_JWT_EXPIRED") {
+      return next(Unauthorized("Token expired"));
+    }
+    if (err.code?.startsWith?.("ERR_J")) {
       return next(Unauthorized("Invalid token"));
     }
     next(err);
