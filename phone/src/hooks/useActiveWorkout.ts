@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useSQLiteContext } from "expo-sqlite";
 import { format } from "date-fns";
 
@@ -11,11 +11,13 @@ import { useWorkoutStore, type ActiveExercise, type ActiveSet } from "../stores/
 import { getTemplateExercises, type TemplateExerciseRow } from "../db/queries/exercises";
 import { createSession, completeSession, logSet } from "../db/queries/workouts";
 import { getLastSessionSetsForExercise } from "../db/queries/progress";
+import * as api from "../lib/apiClient";
 import type { WorkoutTemplate } from "../data/templates";
 
 export function useActiveWorkout() {
   const db = useSQLiteContext();
   const store = useWorkoutStore();
+  const serverSessionId = useRef<string | null>(null);
 
   const startWorkout = useCallback(
     async (template: WorkoutTemplate) => {
@@ -24,7 +26,16 @@ export function useActiveWorkout() {
       const date = format(now, "yyyy-MM-dd");
       const startedAt = now.toISOString();
 
+      // Create locally first
       await createSession(db, sessionId, template.id, date, startedAt);
+
+      // Create on server in background
+      api.sessions
+        .create({ templateId: template.id, date })
+        .then((s) => {
+          serverSessionId.current = s.id;
+        })
+        .catch((e) => console.warn("Server session create failed:", e));
 
       const templateExercises = await getTemplateExercises(db, template.id);
 
@@ -54,12 +65,12 @@ export function useActiveWorkout() {
             sets,
             isComplete: false,
           };
-        })
+        }),
       );
 
       store.startWorkout(sessionId, template.id, template.name, template.color, exercises);
     },
-    [db, store]
+    [db, store],
   );
 
   const handleLogSet = useCallback(
@@ -68,6 +79,7 @@ export function useActiveWorkout() {
       const set = exercise.sets[setIndex];
       if (!store.sessionId || set.isLogged) return;
 
+      // Log locally
       const dbId = await logSet(
         db,
         store.sessionId,
@@ -75,13 +87,26 @@ export function useActiveWorkout() {
         set.setNumber,
         set.weight,
         set.reps,
-        set.isWarmup
+        set.isWarmup,
       );
 
       store.markSetLogged(exerciseIndex, setIndex, dbId);
       store.startRestTimer(exercise.restSeconds);
+
+      // Push to server in background
+      if (serverSessionId.current) {
+        api.sets
+          .create(serverSessionId.current, {
+            exerciseId: exercise.exerciseId,
+            setNumber: set.setNumber,
+            weight: set.weight,
+            reps: set.reps,
+            isWarmup: set.isWarmup,
+          })
+          .catch((e) => console.warn("Server set push failed:", e));
+      }
     },
-    [db, store]
+    [db, store],
   );
 
   const handleCompleteWorkout = useCallback(async () => {
@@ -91,11 +116,19 @@ export function useActiveWorkout() {
     const sessionId = store.sessionId;
     store.endWorkout();
 
-    // Push session to server in background if authenticated
-    const { useAuthStore } = await import("../stores/authStore");
-    if (useAuthStore.getState().isAuthenticated) {
-      const { pushSession } = await import("../lib/sync");
-      pushSession(db, sessionId).catch(console.warn);
+    // Complete on server in background
+    if (serverSessionId.current) {
+      api.sessions.complete(serverSessionId.current).catch((e) =>
+        console.warn("Server session complete failed:", e),
+      );
+      serverSessionId.current = null;
+    } else {
+      // Server session was never created, push the full session
+      const { useAuthStore } = await import("../stores/authStore");
+      if (useAuthStore.getState().isAuthenticated) {
+        const { pushSession } = await import("../lib/sync");
+        pushSession(db, sessionId).catch(console.warn);
+      }
     }
 
     return sessionId;
@@ -106,6 +139,12 @@ export function useActiveWorkout() {
     const { deleteSession } = await import("../db/queries/workouts");
     await deleteSession(db, store.sessionId);
     store.endWorkout();
+
+    // Delete on server if it was created
+    if (serverSessionId.current) {
+      api.sessions.delete(serverSessionId.current).catch(console.warn);
+      serverSessionId.current = null;
+    }
   }, [db, store]);
 
   return {
