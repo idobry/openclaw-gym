@@ -1,22 +1,22 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node",
-      "config": { "includeFiles": "server/**" }
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    { "src": "/health", "dest": "/api/index.ts" },
-    { "src": "/llms\\.txt", "dest": "/api/index.ts" },
-    { "src": "/llms-full\\.txt", "dest": "/api/index.ts" },
-    { "src": "^/\\.well-known/(.*)", "dest": "/api/index.ts" },
-    { "src": "^/(templates|exercises|sessions|sets|stats|program|changes|auth)(/.*)?$", "dest": "/api/index.ts" },
-    { "handle": "filesystem" }
+  "rewrites": [
+    { "source": "/health", "destination": "/api" },
+    { "source": "/llms.txt", "destination": "/api" },
+    { "source": "/llms-full.txt", "destination": "/api" },
+    { "source": "/.well-known/:path*", "destination": "/api" },
+    { "source": "/templates/:path*", "destination": "/api" },
+    { "source": "/templates", "destination": "/api" },
+    { "source": "/exercises/:path*", "destination": "/api" },
+    { "source": "/exercises", "destination": "/api" },
+    { "source": "/sessions/:path*", "destination": "/api" },
+    { "source": "/sessions", "destination": "/api" },
+    { "source": "/sets/:path*", "destination": "/api" },
+    { "source": "/stats/:path*", "destination": "/api" },
+    { "source": "/program/:path*", "destination": "/api" },
+    { "source": "/program", "destination": "/api" },
+    { "source": "/changes/:path*", "destination": "/api" },
+    { "source": "/changes", "destination": "/api" },
+    { "source": "/auth/:path*", "destination": "/api" },
+    { "source": "/auth", "destination": "/api" }
   ]
 }
