@@ -36,13 +36,25 @@ export default function VerifyContent() {
       return;
     }
 
-    if (type === "recovery") {
-      setAuthType("recovery");
-      return;
-    }
-
-    if (type === "signup" || type === "email_change" || type === "magiclink") {
-      setAuthType("confirmed");
+    if (type === "recovery" || type === "signup" || type === "email_change" || type === "magiclink") {
+      // Let Supabase client pick up the session from the hash fragment,
+      // then determine the auth type from the actual event
+      const sb = getSupabase();
+      const { data: { subscription } } = sb.auth.onAuthStateChange((event) => {
+        subscription.unsubscribe();
+        if (event === "PASSWORD_RECOVERY") {
+          setAuthType("recovery");
+        } else if (event === "SIGNED_IN") {
+          setAuthType(type === "recovery" ? "recovery" : "confirmed");
+        } else {
+          setAuthType(type === "recovery" ? "recovery" : "confirmed");
+        }
+      });
+      // Timeout fallback in case onAuthStateChange doesn't fire
+      setTimeout(() => {
+        subscription.unsubscribe();
+        setAuthType((prev) => prev === "loading" ? (type === "recovery" ? "recovery" : "confirmed") : prev);
+      }, 3000);
       return;
     }
 
