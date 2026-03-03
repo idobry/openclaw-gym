@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { createRemoteJWKSet, jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { profiles } from "../db/schema";
@@ -18,11 +17,19 @@ declare global {
   }
 }
 
-const JWKS = createRemoteJWKSet(
-  new URL(
-    "https://kjymatxamlsdkjmgwkqi.supabase.co/auth/v1/.well-known/jwks.json"
-  )
-);
+// jose v5+ is ESM-only; dynamic import() keeps CJS compat for Vercel ncc
+let _jwks: any;
+async function getJWKS() {
+  if (!_jwks) {
+    const { createRemoteJWKSet } = await import("jose");
+    _jwks = createRemoteJWKSet(
+      new URL(
+        "https://kjymatxamlsdkjmgwkqi.supabase.co/auth/v1/.well-known/jwks.json"
+      )
+    );
+  }
+  return _jwks;
+}
 
 export async function authMiddleware(
   req: Request,
@@ -36,7 +43,9 @@ export async function authMiddleware(
     }
 
     const token = authHeader.slice(7);
-    const { payload } = await jwtVerify(token, JWKS);
+    const jwks = await getJWKS();
+    const { jwtVerify } = await import("jose");
+    const { payload } = await jwtVerify(token, jwks);
 
     if (!payload.sub) {
       throw Unauthorized("Invalid token: missing subject");
