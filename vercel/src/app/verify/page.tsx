@@ -1,10 +1,8 @@
-"use client";
+import VerifyClient from "./VerifyClient";
 
-import dynamic from "next/dynamic";
-
-// Prevent SSG - this page must only run in the browser
-const VerifyContent = dynamic(() => import("./VerifyContent"), { ssr: false });
+// Never statically prerender - always render on request
+export const dynamic = "force-dynamic";
 
 export default function VerifyPage() {
-  return <VerifyContent />;
+  return <VerifyClient />;
 }
